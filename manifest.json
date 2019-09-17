@@ -10,7 +10,7 @@
 
 	"permissions": ["bookmarks"],
 	"browser_action": {
-		"default_icon": "icon.jpg",
-		"default_title": "Go to Dev.Opera!"
+		"default_icon": "favicon.ico",
+		"default_title": "Archive now!"
 	}
 }
