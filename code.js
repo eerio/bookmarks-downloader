@@ -1,11 +1,53 @@
 var list = document.querySelector('#bookmarklist');
 var mylist = document.getElementById("mylist");
+var move_btn = document.getElementById("move_btn");
+var folder;
 
-chrome.bookmarks.getTree(function (bmTree) {
+
+function sleep(milis) {
+	var date = new Date();
+	var curDate = null;
+	do {
+		curDate = new Date();
+	} while (curDate - date < milis);
+}
+
+
+function zfill(topad, l) {
+	return ('000' + topad).slice(-l);
+}
+
+move_btn.onclick = function() {
+	// get time stamp and format it
+	var curdate = new Date();
+	var dt = zfill(curdate.getDate(), 		2) + '.'
+		   + zfill(curdate.getMonth()+1,	2) + '.'
+		   + zfill(curdate.getFullYear(),   4) + ' '
+		   + zfill(curdate.getHours(), 		2) + ':'
+		   + zfill(curdate.getMinutes(), 	2) + ':'
+		   + zfill(curdate.getSeconds(), 	2);
+		   
+	// create new folder for backup
+	chrome.bookmarks.create(
+		{
+			'parentId': "1",
+			'title': 'Bookmarks backup ' + dt,
+			'url': null,
+		},
+		function(newFolder) {
+			folder = newFolder;
+			console.log("added folder: " + newFolder.title);
+	});
+	
+	// sleep 1 sec to ensure no name error will occur
+	sleep(1000);
+	
+	chrome.bookmarks.getTree(function (bmTree) {
 	bmTree.forEach( function (node){
 		processNode(node);
 	});
 });
+}
 
 function processNode(node) {
 	if (node.children) {
@@ -31,9 +73,15 @@ function processNode(node) {
 			//console.log(node.title);
 			//check.innerHTML += '<li>' + node.title + '</li>';
 		} else {
+			chrome.bookmarks.move(
+				node.id,
+				{
+					'parentId': folder.id, 
+				}
+			);
 			// Add a list entry under the main list
 			//console.log(node.title);
-			mylist.innerHTML += '<li>' + node.title + '</li>';
+			mylist.innerHTML += '<li>' + node.title + '<br>'+node.url+ '</li>';
 			//list.innerHTML += '<li>' + node.title + '</li>';
 		}
 	}
